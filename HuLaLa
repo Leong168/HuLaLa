@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Mobile SKU Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 10px;
+      margin: 0;
+      background: #f9f9f9;
+    }
+    h2 {
+      text-align: center;
+    }
+    #qr-reader {
+      width: 100%;
+      max-width: 100%;
+      margin: auto;
+    }
+    input, button {
+      font-size: 1.2em;
+      padding: 10px;
+      margin: 8px 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #aaa;
+      padding: 10px;
+      text-align: center;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>📦 Mobile SKU Scanner</h2>
+
+  <div id="qr-reader" style="height: 300px;"></div>
+
+  <label>Scanned SKU:</label>
+  <input type="text" id="sku" readonly placeholder="Scan QR code..." />
+
+  <label>Counted Quantity:</label>
+  <input type="number" id="qty" inputmode="numeric" placeholder="Enter quantity" />
+
+  <button onclick="addItem()">➕ Add Item</button>
+
+  <h3>📝 Scanned List</h3>
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>SKU</th>
+        <th>Quantity</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <button onclick="exportToExcel()">📤 Submit & Export to Excel</button>
+
+  <script>
+    let data = [];
+
+    function addItem() {
+      const sku = document.getElementById('sku').value.trim();
+      const qty = document.getElementById('qty').value.trim();
+
+      if (!sku || !qty) {
+        alert('Please scan SKU and enter quantity');
+        return;
+      }
+
+      data.push({ SKU: sku, Quantity: parseInt(qty) });
+      updateTable();
+
+      document.getElementById('sku').value = '';
+      document.getElementById('qty').value = '';
+    }
+
+    function updateTable() {
+      const tbody = document.querySelector("#dataTable tbody");
+      tbody.innerHTML = '';
+      data.forEach(item => {
+        const row = tbody.insertRow();
+        row.insertCell(0).textContent = item.SKU;
+        row.insertCell(1).textContent = item.Quantity;
+      });
+    }
+
+    function exportToExcel() {
+      if (data.length === 0) {
+        alert("No data to export.");
+        return;
+      }
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Inventory");
+      XLSX.writeFile(workbook, "inventory_data.xlsx");
+    }
+
+    // QR Scanner
+    function onScanSuccess(decodedText) {
+      document.getElementById('sku').value = decodedText;
+    }
+
+    const qrScanner = new Html5Qrcode("qr-reader");
+    qrScanner.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      onScanSuccess
+    ).catch(err => {
+      console.error("QR Scan error:", err);
+    });
+  </script>
+
+</body>
+</html>
