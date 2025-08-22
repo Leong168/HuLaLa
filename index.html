@@ -117,18 +117,17 @@
     }
 
     // QR Scanner
-    function onScanSuccess(decodedText) {
-      document.getElementById('sku').value = decodedText;
-    }
+    function startScanner() {
+  const qrScanner = new Html5Qrcode("qr-reader");
+  qrScanner.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 250, height: 250 } },
+    onScanSuccess
+  ).catch(err => {
+    console.error("QR Scan error:", err);
+  });
+}
 
-    const qrScanner = new Html5Qrcode("qr-reader");
-    qrScanner.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      onScanSuccess
-    ).catch(err => {
-      console.error("QR Scan error:", err);
-    });
   </script>
 
 </body>
